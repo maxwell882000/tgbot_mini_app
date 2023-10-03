@@ -2,12 +2,14 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
 
-const token = '5336424335:AAGk0uyo0qqRCrKgvr2J7GrYKK1S0MF8878';
-const webAppUrl = 'https://ornate-selkie-c27577.netlify.app';
+const token = '6301830744:AAHfTtbRO6EYZ5_dHEOuGGUpMkS6ds4yCCs';
+const webAppUrl = 'https://main--guileless-parfait-5c5fd4.netlify.app';
 
+// sequelize.sync({force: true});
 const bot = new TelegramBot(token, {polling: true});
 const app = express();
 
+const models = require('./models');
 app.use(express.json());
 app.use(cors());
 
@@ -15,7 +17,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
 
-    if(text === '/start') {
+    if (text === '/start') {
         await bot.sendMessage(chatId, 'Ниже появится кнопка, заполни форму', {
             reply_markup: {
                 keyboard: [
@@ -33,7 +35,7 @@ bot.on('message', async (msg) => {
         })
     }
 
-    if(msg?.web_app_data?.data) {
+    if (msg?.web_app_data?.data) {
         try {
             const data = JSON.parse(msg?.web_app_data?.data)
             console.log(data)
@@ -50,22 +52,31 @@ bot.on('message', async (msg) => {
     }
 });
 
-app.post('/web-data', async (req, res) => {
-    const {queryId, products = [], totalPrice} = req.body;
-    try {
-        await bot.answerWebAppQuery(queryId, {
-            type: 'article',
-            id: queryId,
-            title: 'Успешная покупка',
-            input_message_content: {
-                message_text: ` Поздравляю с покупкой, вы приобрели товар на сумму ${totalPrice}, ${products.map(item => item.title).join(', ')}`
-            }
-        })
-        return res.status(200).json({});
-    } catch (e) {
-        return res.status(500).json({})
-    }
-})
+
+app.get('/people/:userId', async (req, res) => {
+    return res.status(200).json(await models.Personals.findOne({
+        where: {id: req.params.userId},
+        include: [
+            {
+                model: models.Comments,
+                as: "comments"
+            },
+            {
+                model: models.Banners,
+                as: "banners"
+            },
+        ]
+    }));
+});
+
+
+app.get('/people', async (req, res) => {
+    return res.status(200).json(await models.Personals.findAll());
+});
+
+app.post("/add_comment", async (req, res) => {
+    return res.status(200).json(await models.Comments.create(req.body));
+});
 
 const PORT = 8000;
 
