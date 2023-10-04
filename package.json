@@ -15,8 +15,11 @@
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "node-telegram-bot-api": "^0.58.0",
     "sequelize": "^6.33.0"
+  },
+  "engines": {
+    "node": ">=14"
   }
 }
